@@ -1,25 +1,24 @@
+package aoc2020;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.function.IntBinaryOperator;
 
-public class Day13 {
+public class Day13LU {
 
     private String fileName;
-    private int minId;
-    private int minWait;
 
     public static void main( String[] args ) {
         try {
-            // new Day13( "c:\\tmp\\sample13-1.dat" ).doTasks();
-            new Day13( "c:\\tmp\\input13.dat" ).doTasks();
+            new Day13LU( "c:\\tmp\\input13.dat" ).doTasks();
         } catch ( Throwable e ) {
             e.printStackTrace();
         }
     }
 
-    public Day13( String file ) {
+    public Day13LU( String file ) {
         this.fileName = file;
     }
 
@@ -47,80 +46,53 @@ public class Day13 {
         doAssert( "1789,37,47,1889", 1202161486 );
         String[] fileLines = Files.lines( Paths.get( fileName ) )
                                   .toArray( String[]::new );
-        long[] solutions = Arrays.stream( fileLines )
-                                 .skip( 1 )
-                                 .mapToLong( ids -> solveTask2( 100000000000000L, ids ) )
-                                 .toArray();
-        return solutions[solutions.length - 1];
+        return Arrays.stream( fileLines )
+                     .skip( 1 )
+                     .limit( 1 )
+                     .mapToLong( this::solveTask2 )
+                     .max()
+                     .orElse( -1 );
     }
 
     private void doAssert( String ids, long expected ) {
-        long actual = solveTask2( 0, ids );
+        long actual = solveTask2( ids );
         if ( actual != expected ) {
             debug( "Failed on %s: %d instead of %d", ids, actual, expected );
         }
     }
 
-    private long solveTask2( long min, String idsList ) {
+    private long solveTask2( String idsList ) {
         long[] ids = Arrays.stream( idsList.split( "," ) )
                            .mapToLong( id -> id.startsWith( "x" ) ? -1 : Long.parseLong( id ) )
                            .toArray();
         long step = ids[0];
-        long moment = 0;
+        long moment = step;
         for ( int idx = 1; idx < ids.length; ++idx ) {
             long current = ids[idx];
-            if ( current == -1 ) {
-                continue;
+            if ( current != -1 ) {
+                moment = findCollision( moment, current - idx, step, current );
+                step *= current;
             }
-            moment = findCollision( moment, current - idx, step, current );
-            step = lcd( step, current );
         }
         return moment;
     }
 
-    private boolean stopsAt( long moment, long id ) {
-        return id == -1 || moment % id == 0;
-    }
-
-    private long gcd( long a, long b ) {
-        // debug( "GCD: %-8d / %-8d", a, b );
-        while ( a != b ) {
-            if ( a < b ) {
-                b -= a * ( b / a );
-                if ( b == 0 ) {
-                    return a;
-                }
-            } else {
-                a -= b * ( a / b );
-                if ( a == 0 ) {
-                    return b;
-                }
-            }
-        }
-        return a;
-    }
-
-    private long lcd( long a, long b ) {
-        long g = gcd( a, b );
-        return a / g * b;
-    }
-
     private long findCollision( long a, long b, long stepa, long stepb ) {
-        // debug( "findCollision: a=%-8d b=%-8d sa=%-8d sb=%-8d", a, b, stepa, stepb );
         while ( a != b ) {
             if ( a < b ) {
                 a += ( b - a ) / stepa * stepa;
-                if ( a != b ) {
-                    a += stepa;
+                if ( a == b ) {
+                    return a;
                 }
+                a += stepa;
             } else {
                 b += ( a - b ) / stepb * stepb;
-                if ( a != b ) {
-                    b += stepb;
+                if ( a == b ) {
+                    return b;
                 }
+                b += stepb;
             }
         }
-        // debug( "findCollision: r=%d", a );
         return a;
     }
 

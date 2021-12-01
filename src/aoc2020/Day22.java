@@ -1,3 +1,5 @@
+package aoc2020;
+
 import common.AocDay;
 import common.Utils;
 

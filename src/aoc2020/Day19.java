@@ -1,3 +1,5 @@
+package aoc2020;
+
 import common.Utils;
 
 import java.io.IOException;

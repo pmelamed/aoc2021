@@ -29,8 +29,17 @@ public class Utils {
     }
 
     public static <T1, T2> void executeDay( AocDay<T1, T2> day, T1 expected1, T2 expected2 ) {
-        executeAndPrintAssert( day::task1, day.sampleName(), 1, expected1 );
-        executeAndPrintAssert( day::task2, day.sampleName(), 2, expected2 );
+        executeDay( day, day, expected1, expected2 );
+    }
+
+    public static <T1, T2> void executeDay(
+            AocDay<T1, T2> dayInst1,
+            AocDay<T1, T2> dayInst2,
+            T1 expected1,
+            T2 expected2
+    ) {
+        executeAndPrintAssert( dayInst1::task1, dayInst1.sampleName(), 1, expected1 );
+        executeAndPrintAssert( dayInst2::task2, dayInst2.sampleName(), 2, expected2 );
     }
 
     private static <T> void executeAndPrintAssert( Supplier<T> task, String sampleName, int taskNo, T expected ) {

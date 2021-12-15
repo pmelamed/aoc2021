@@ -107,11 +107,15 @@ public class Day13Y21Modified implements AocDay<Long, Long> {
             Arrays.fill( line, ' ' );
         }
         for ( Point point : points ) {
-            code[point.y - minY][point.x - minX] = '#';
+            code[point.y - minY][point.x - minX] = '\u2588';
         }
         System.out.println();
         for ( char[] line : code ) {
-            System.out.println( new String( line ) );
+            for ( char ch : line ) {
+                System.out.print( ch );
+                System.out.print( ch );
+            }
+            System.out.println();
         }
         return 0L;
     }

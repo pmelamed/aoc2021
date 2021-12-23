@@ -38,8 +38,12 @@ public class Utils {
             T1 expected1,
             T2 expected2
     ) {
-        executeAndPrintAssert( dayInst1::task1, dayInst1.sampleName(), 1, expected1 );
-        executeAndPrintAssert( dayInst2::task2, dayInst2.sampleName(), 2, expected2 );
+        if ( dayInst1 != null ) {
+            executeAndPrintAssert( dayInst1::task1, dayInst1.sampleName(), 1, expected1 );
+        }
+        if ( dayInst2 != null ) {
+            executeAndPrintAssert( dayInst2::task2, dayInst2.sampleName(), 2, expected2 );
+        }
     }
 
     private static <T> void executeAndPrintAssert( Supplier<T> task, String sampleName, int taskNo, T expected ) {

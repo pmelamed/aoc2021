@@ -14,7 +14,7 @@ public class Day24Y21 implements AocDay<Long, Long> {
 
     public static void main( String[] args ) {
         try {
-            executeTasks( "input/Y21D24I.dat", 99919692496939L, 81914111161714L );
+            executeTasks( "input/2021/Y21D24I.dat", 99919692496939L, 81914111161714L );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }

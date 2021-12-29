@@ -76,10 +76,10 @@ public class Day22Y21 implements AocDay<Long, Long> {
 
     public static void main( String[] args ) {
         try {
-            executeTasks( "input/Y21D22S1.dat", 39L, 39L );
-            executeTasks( "input/Y21D22S2.dat", 590784L, null );
-            executeTasks( "input/Y21D22S3.dat", 474140L, 2758514936282235L );
-            executeTasks( "input/Y21D22I.dat", null, null );
+            executeTasks( "input/2021/Y21D22S1.dat", 39L, 39L );
+            executeTasks( "input/2021/Y21D22S2.dat", 590784L, null );
+            executeTasks( "input/2021/Y21D22S3.dat", 474140L, 2758514936282235L );
+            executeTasks( "input/2021/Y21D22I.dat", null, null );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }

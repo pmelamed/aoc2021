@@ -13,8 +13,8 @@ public class Day10Y21 implements AocDay<Long, Long> {
 
     public static void main( String[] args ) {
         try {
-            executeTasks( "input/Y21D10S1.dat", 26397L, 288957L );
-            executeTasks( "input/Y21D10I.dat", null, null );
+            executeTasks( "input/2021/Y21D10S1.dat", 26397L, 288957L );
+            executeTasks( "input/2021/Y21D10I.dat", null, null );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }

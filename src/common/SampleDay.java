@@ -6,8 +6,8 @@ public class SampleDay implements AocDay<Integer, Integer> {
 
     public static void main( String[] args ) {
         try {
-            executeTasks( "input/Y21D01S01.dat", null, null );
-            executeTasks( "input/Y21D01I.dat", null, null );
+            executeTasks( "input/2021/Y21D01S01.dat", null, null );
+            executeTasks( "input/2021/Y21D01I.dat", null, null );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }

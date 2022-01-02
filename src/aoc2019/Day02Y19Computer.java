@@ -8,7 +8,7 @@ import java.util.Map;
 public class Day02Y19Computer implements AocDay<Long, Long> {
 
     private final String name;
-    private final IntComputer initialState;
+    private final IntComputer.Ram initialState;
 
     public static void main( String[] args ) {
         try {
@@ -24,7 +24,7 @@ public class Day02Y19Computer implements AocDay<Long, Long> {
 
     public Day02Y19Computer( String file ) {
         this.name = file;
-        initialState = new IntComputer( Utils.readLines( file ).get( 0 ), "" );
+        initialState = new IntComputer.Ram( Utils.readLines( file ).get( 0 ) );
     }
 
     @Override
@@ -33,19 +33,19 @@ public class Day02Y19Computer implements AocDay<Long, Long> {
     }
 
     public Long task1() {
-        return (long) initialState.copyState()
-                                  .fixMemory( Map.of( 1, 12, 2, 2 ) )
-                                  .interpret()
-                                  .getMemory( 0 );
+        return (long) IntComputer.fromRam( initialState )
+                                 .fixMemory( Map.of( 1, 12, 2, 2 ) )
+                                 .interpret()
+                                 .getMemory( 0 );
     }
 
     public Long task2() {
         for ( int noun = 0; noun <= 99; ++noun ) {
             for ( int verb = 0; verb <= 99; ++verb ) {
-                if ( initialState.copyState()
-                                 .fixMemory( Map.of( 1, noun, 2, verb ) )
-                                 .interpret()
-                                 .getMemory( 0 ) == 19690720L ) {
+                if ( IntComputer.fromRam( initialState )
+                                .fixMemory( Map.of( 1, noun, 2, verb ) )
+                                .interpret()
+                                .getMemory( 0 ) == 19690720L ) {
                     return 100L * noun + verb;
                 }
             }

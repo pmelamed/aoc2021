@@ -1,42 +1,35 @@
 package aoc2019;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class IntComputer {
     private static final int[] OP_MODE_DIVIDER = { 100, 1_000, 10_000 };
     private final int[] memory;
     private int iptr = 0;
-    private final int[] input;
-    private int inputPtr = 0;
-    private final List<Integer> output = new ArrayList<>();
 
-    IntComputer( String source, String input ) {
-        this.memory = Arrays.stream( source.split( "," ) )
-                            .mapToInt( Integer::parseInt )
-                            .toArray();
-        this.input = input == null || input.isBlank()
-                ? new int[]{}
-                : Arrays.stream( input.split( "," ) )
-                        .mapToInt( Integer::parseInt )
-                        .toArray();
-    }
-
-    private IntComputer( int[] memory, int[] input ) {
-        this.memory = Arrays.copyOf( memory, memory.length );
-        this.input = Arrays.copyOf( input, input.length );
-    }
-
-    public IntComputer( IntComputer peer ) {
-        this( peer.memory, peer.input );
-        this.iptr = peer.iptr;
-        this.inputPtr = peer.inputPtr;
-        this.output.addAll( peer.output );
+    private IntComputer( Ram ram ) {
+        this.memory = ram.getMemory();
     }
 
     IntComputer interpret() {
+        return interpret( (Supplier<Integer>) null, null );
+    }
+
+    IntComputer interpret( int[] input, Queue<Integer> output ) {
+        ArrayDeque<Integer> inputs = new ArrayDeque<>( Arrays.stream( input ).boxed().toList() );
+        interpret(
+                inputs::remove,
+                output::offer
+        );
+        return this;
+    }
+
+    IntComputer interpret( Supplier<Integer> input, Consumer<Integer> output ) {
         while ( true ) {
             int instr = getInstrPart();
             switch ( instr % 100 ) {
@@ -54,11 +47,11 @@ public class IntComputer {
                 }
                 case 3 -> {
                     int target = getInstrPart();
-                    memory[target] = input[inputPtr++];
+                    memory[target] = input.get();
                 }
                 case 4 -> {
                     int value = getOperand( getInstrPart(), instr, 0 );
-                    output.add( value );
+                    output.accept( value );
                 }
                 case 5 -> {
                     int op = getOperand( getInstrPart(), instr, 0 );
@@ -94,10 +87,6 @@ public class IntComputer {
         }
     }
 
-    List<Integer> getOutput() {
-        return output;
-    }
-
     int getMemory( int addr ) {
         return memory[addr];
     }
@@ -109,12 +98,8 @@ public class IntComputer {
         return this;
     }
 
-    IntComputer copy() {
-        return new IntComputer( memory, input );
-    }
-
-    IntComputer copyState() {
-        return new IntComputer( this );
+    static IntComputer fromRam( Ram ram ) {
+        return new IntComputer( ram );
     }
 
     private int getInstrPart() {
@@ -124,5 +109,19 @@ public class IntComputer {
     private int getOperand( int opValue, int opCode, int opPos ) {
         int mode = opCode / OP_MODE_DIVIDER[opPos] % 10;
         return mode == 0 ? memory[opValue] : opValue;
+    }
+
+    static class Ram {
+        private final int[] memory;
+
+        Ram( String source ) {
+            this.memory = Arrays.stream( source.split( "," ) )
+                                .mapToInt( Integer::parseInt )
+                                .toArray();
+        }
+
+        int[] getMemory() {
+            return Arrays.copyOf( memory, memory.length );
+        }
     }
 }

@@ -52,7 +52,6 @@ public class Day04Y19 implements AocDay<Long, Long> {
     private boolean checkPasswordRules( int num ) {
         int divider = 10_000;
         boolean dbl = false;
-        int repeats = 0;
         int prevDigit = num / 100_000;
         num %= 100_000;
         while ( divider > 0 ) {
@@ -95,5 +94,4 @@ public class Day04Y19 implements AocDay<Long, Long> {
         }
         return repeats == 1 || dbl;
     }
-
 }

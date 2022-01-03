@@ -3,7 +3,6 @@ package aoc2019;
 import common.AocDay;
 import common.Utils;
 
-import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +12,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static aoc2019.IntComputer.arrayInput;
+import static aoc2019.IntComputer.arrayOutput;
 
 public class Day07Y19 implements AocDay<Long, Long> {
 
@@ -46,29 +48,26 @@ public class Day07Y19 implements AocDay<Long, Long> {
     }
 
     public Long task1() {
-        return (long) iteratePhases(
-                0,
+        return iteratePhases(
                 0, 4,
                 ( max, phases ) -> Math.max( max, computeAmplifiersCascade( phases ) )
         );
     }
 
     public Long task2() {
-        return (long) iteratePhases(
-                0,
+        return iteratePhases(
                 5, 9,
                 ( max, phases ) -> Math.max( max, computeLoopedCascade( phases ) )
         );
     }
 
-    private int iteratePhases(
-            int initial,
+    private long iteratePhases(
             int minPhase,
             int maxPhase,
-            BiFunction<Integer, int[], Integer> emulator
+            BiFunction<Long, int[], Long> emulator
     ) {
         int[] phases = new int[5];
-        int result = initial;
+        long result = 0L;
         for ( phases[0] = minPhase; phases[0] <= maxPhase; ++phases[0] ) {
             for ( phases[1] = minPhase; phases[1] <= maxPhase; ++phases[1] ) {
                 if ( phases[1] == phases[0] ) {
@@ -96,31 +95,33 @@ public class Day07Y19 implements AocDay<Long, Long> {
         return result;
     }
 
-    private int computeAmplifiersCascade( int[] phases ) {
-        int[] input = { 0, 0 };
-        LinkedList<Integer> output = new LinkedList<>();
+    private long computeAmplifiersCascade( int[] phases ) {
+        long[] input = { 0, 0 };
+        long[] output = new long[1];
         for ( int ampIndex = 0; ampIndex < 5; ++ampIndex ) {
             input[0] = phases[ampIndex];
             IntComputer.fromRam( initialState )
-                       .interpret( input, output );
-            input[1] = output.get( 0 );
-            output.clear();
+                       .interpret(
+                               arrayInput( input ),
+                               arrayOutput( output )
+                       );
+            input[1] = output[0];
         }
         return input[1];
     }
 
-    private int computeLoopedCascade( int[] phases ) {
-        BlockingQueue<Integer> e2a = new LinkedBlockingQueue<>( 2 );
-        BlockingQueue<Integer> a2b = new LinkedBlockingQueue<>( 2 );
-        BlockingQueue<Integer> b2c = new LinkedBlockingQueue<>( 2 );
-        BlockingQueue<Integer> c2d = new LinkedBlockingQueue<>( 2 );
-        BlockingQueue<Integer> d2e = new LinkedBlockingQueue<>( 2 );
-        e2a.offer( phases[0] );
-        a2b.offer( phases[1] );
-        b2c.offer( phases[2] );
-        c2d.offer( phases[3] );
-        d2e.offer( phases[4] );
-        e2a.offer( 0 );
+    private long computeLoopedCascade( int[] phases ) {
+        BlockingQueue<Long> e2a = new LinkedBlockingQueue<>( 2 );
+        BlockingQueue<Long> a2b = new LinkedBlockingQueue<>( 2 );
+        BlockingQueue<Long> b2c = new LinkedBlockingQueue<>( 2 );
+        BlockingQueue<Long> c2d = new LinkedBlockingQueue<>( 2 );
+        BlockingQueue<Long> d2e = new LinkedBlockingQueue<>( 2 );
+        e2a.offer( (long) phases[0] );
+        a2b.offer( (long) phases[1] );
+        b2c.offer( (long) phases[2] );
+        c2d.offer( (long) phases[3] );
+        d2e.offer( (long) phases[4] );
+        e2a.offer( 0L );
         CompletableFuture<Void> threadA = runCpu( initialState, e2a, a2b );
         CompletableFuture<Void> threadB = runCpu( initialState, a2b, b2c );
         CompletableFuture<Void> threadC = runCpu( initialState, b2c, c2d );
@@ -139,8 +140,8 @@ public class Day07Y19 implements AocDay<Long, Long> {
 
     private CompletableFuture<Void> runCpu(
             IntComputer.Ram ram,
-            BlockingQueue<Integer> input,
-            BlockingQueue<Integer> output
+            BlockingQueue<Long> input,
+            BlockingQueue<Long> output
     ) {
         return CompletableFuture.runAsync( () -> IntComputer.fromRam( ram ).interpret(
                 queuedSupplier( input ),
@@ -148,7 +149,7 @@ public class Day07Y19 implements AocDay<Long, Long> {
         ) );
     }
 
-    private static Supplier<Integer> queuedSupplier( BlockingQueue<Integer> queue ) {
+    private static Supplier<Long> queuedSupplier( BlockingQueue<Long> queue ) {
         return () -> {
             try {
                 return queue.take();
@@ -158,7 +159,7 @@ public class Day07Y19 implements AocDay<Long, Long> {
         };
     }
 
-    private static Consumer<Integer> queuedConsumer( BlockingQueue<Integer> queue ) {
+    private static Consumer<Long> queuedConsumer( BlockingQueue<Long> queue ) {
         return val -> {
             try {
                 queue.put( val );

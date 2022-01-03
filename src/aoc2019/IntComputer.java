@@ -1,99 +1,89 @@
 package aoc2019;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class IntComputer {
-    private static final int[] OP_MODE_DIVIDER = { 100, 1_000, 10_000 };
-    private final int[] memory;
+    private static final long[] OP_MODE_DIVIDER = { 100L, 1_000L, 10_000L };
+    private long[] memory;
     private int iptr = 0;
+    private int relativeBase = 0;
+    private final int allocationSize;
 
     private IntComputer( Ram ram ) {
         this.memory = ram.getMemory();
+        this.allocationSize = this.memory.length;
     }
 
-    IntComputer interpret() {
-        return interpret( (Supplier<Integer>) null, null );
-    }
-
-    IntComputer interpret( int[] input, Queue<Integer> output ) {
-        ArrayDeque<Integer> inputs = new ArrayDeque<>( Arrays.stream( input ).boxed().toList() );
-        interpret(
-                inputs::remove,
-                output::offer
-        );
-        return this;
-    }
-
-    IntComputer interpret( Supplier<Integer> input, Consumer<Integer> output ) {
+    IntComputer interpret( Supplier<Long> input, Consumer<Long> output ) {
         while ( true ) {
-            int instr = getInstrPart();
-            switch ( instr % 100 ) {
+            long instr = getInstrPart();
+            switch ( (int) ( instr % 100L ) ) {
                 case 1 -> {
-                    int lhs = getOperand( getInstrPart(), instr, 0 );
-                    int rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getInstrPart();
-                    memory[target] = lhs + rhs;
+                    long lhs = getOperand( getInstrPart(), instr, 0 );
+                    long rhs = getOperand( getInstrPart(), instr, 1 );
+                    int target = getOperandAddress( getInstrPart(), instr, 2 );
+                    setMemory( target, lhs + rhs );
                 }
                 case 2 -> {
-                    int lhs = getOperand( getInstrPart(), instr, 0 );
-                    int rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getInstrPart();
-                    memory[target] = lhs * rhs;
+                    long lhs = getOperand( getInstrPart(), instr, 0 );
+                    long rhs = getOperand( getInstrPart(), instr, 1 );
+                    int target = getOperandAddress( getInstrPart(), instr, 2 );
+                    setMemory( target, lhs * rhs );
                 }
                 case 3 -> {
-                    int target = getInstrPart();
-                    memory[target] = input.get();
+                    int target = getOperandAddress( getInstrPart(), instr, 0 );
+                    setMemory( target, input.get() );
                 }
                 case 4 -> {
-                    int value = getOperand( getInstrPart(), instr, 0 );
+                    long value = getOperand( getInstrPart(), instr, 0 );
                     output.accept( value );
                 }
                 case 5 -> {
-                    int op = getOperand( getInstrPart(), instr, 0 );
-                    int target = getOperand( getInstrPart(), instr, 1 );
+                    long op = getOperand( getInstrPart(), instr, 0 );
+                    int target = getIntOperand( getInstrPart(), instr, 1 );
                     if ( op != 0 ) {
                         iptr = target;
                     }
                 }
                 case 6 -> {
-                    int op = getOperand( getInstrPart(), instr, 0 );
-                    int target = getOperand( getInstrPart(), instr, 1 );
+                    long op = getOperand( getInstrPart(), instr, 0 );
+                    int target = getIntOperand( getInstrPart(), instr, 1 );
                     if ( op == 0 ) {
                         iptr = target;
                     }
                 }
                 case 7 -> {
-                    int lhs = getOperand( getInstrPart(), instr, 0 );
-                    int rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getInstrPart();
-                    memory[target] = lhs < rhs ? 1 : 0;
+                    long lhs = getOperand( getInstrPart(), instr, 0 );
+                    long rhs = getOperand( getInstrPart(), instr, 1 );
+                    int target = getOperandAddress( getInstrPart(), instr, 2 );
+                    setMemory( target, lhs < rhs ? 1 : 0 );
                 }
                 case 8 -> {
-                    int lhs = getOperand( getInstrPart(), instr, 0 );
-                    int rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getInstrPart();
-                    memory[target] = lhs == rhs ? 1 : 0;
+                    long lhs = getOperand( getInstrPart(), instr, 0 );
+                    long rhs = getOperand( getInstrPart(), instr, 1 );
+                    int target = getOperandAddress( getInstrPart(), instr, 2 );
+                    setMemory( target, lhs == rhs ? 1 : 0 );
                 }
+                case 9 -> relativeBase += getIntOperand( getInstrPart(), instr, 0 );
                 case 99 -> {
                     return this;
                 }
-                default -> throw new IllegalStateException( "Bad opcode= " + instr );
+                default -> throw new IllegalStateException( "Bad opcode = " + instr );
             }
         }
     }
 
-    int getMemory( int addr ) {
-        return memory[addr];
+    long getMemory( int address ) {
+        return address < memory.length ? memory[address] : 0L;
     }
 
-    IntComputer fixMemory( Map<Integer, Integer> addrToValue ) {
+    IntComputer fixMemory( Map<Integer, Long> addrToValue ) {
         for ( var entry : addrToValue.entrySet() ) {
-            memory[entry.getKey()] = entry.getValue();
+            setMemory( entry.getKey(), entry.getValue() );
         }
         return this;
     }
@@ -102,25 +92,104 @@ public class IntComputer {
         return new IntComputer( ram );
     }
 
-    private int getInstrPart() {
+    static Supplier<Long> nullInput() {
+        return () -> {throw new IllegalStateException( "Trying to read empty input" );};
+    }
+
+    static Supplier<Long> singleInput( long input ) {
+        return arrayInput( new long[]{ input } );
+    }
+
+    static Supplier<Long> arrayInput( long[] input ) {
+        return new Supplier<>() {
+            int ptr = 0;
+
+            @Override
+            public Long get() {
+                if ( ptr >= input.length ) {
+                    throw new IllegalStateException( "Insufficient input" );
+                }
+                return input[ptr++];
+            }
+        };
+    }
+
+    static Consumer<Long> nullOutput() {
+        return ( value ) -> {throw new IllegalStateException( "Trying to write to null output" );};
+    }
+
+    static Consumer<Long> arrayOutput( long[] output ) {
+        return new Consumer<>() {
+            int ptr = 0;
+
+            @Override
+            public void accept( Long value ) {
+                if ( ptr >= output.length ) {
+                    throw new IllegalStateException( "Insufficient space for output" );
+                }
+                output[ptr++] = value;
+            }
+        };
+    }
+
+    static Consumer<Long> listOutput( Collection<? super Long> target ) {
+        return target::add;
+    }
+
+    private void setMemory( int address, long value ) {
+        if ( address >= memory.length ) {
+            memory = Arrays.copyOf( memory, ( address + allocationSize ) / allocationSize * allocationSize );
+        }
+        memory[address] = value;
+    }
+
+    private long getInstrPart() {
         return memory[iptr++];
     }
 
-    private int getOperand( int opValue, int opCode, int opPos ) {
-        int mode = opCode / OP_MODE_DIVIDER[opPos] % 10;
-        return mode == 0 ? memory[opValue] : opValue;
+    private int getIntOperand( long opValue, long opCode, int opPos ) {
+        long value = getOperand( opValue, opCode, opPos );
+        if ( value < Integer.MIN_VALUE || value > Integer.MAX_VALUE ) {
+            throw new IllegalStateException( "Bad address " + value );
+        }
+        return (int) value;
+    }
+
+    private long getOperand( long opValue, long opCode, int opPos ) {
+        long mode = opCode / OP_MODE_DIVIDER[opPos] % 10;
+        return switch ( (int) mode ) {
+            case 0 -> getMemory( (int) opValue );
+            case 1 -> opValue;
+            case 2 -> getMemory( (int) opValue + relativeBase );
+            default -> throw new IllegalStateException( "Bad operand mode " + mode );
+        };
+    }
+
+    private int getOperandAddress( long opValue, long opCode, int opPos ) {
+        long mode = opCode / OP_MODE_DIVIDER[opPos] % 10;
+        long address = switch ( (int) mode ) {
+            case 0 -> opValue;
+            case 2 -> opValue + relativeBase;
+            default -> throw new IllegalStateException(
+                    "Bad lvalue operand mode %d, opCode = %d, opPos = %d".formatted( mode, opCode, opPos )
+            );
+        };
+        if ( address < 0 || address > Integer.MAX_VALUE ) {
+            throw new IllegalStateException( "Bad address " + address );
+        }
+        return (int) address;
     }
 
     static class Ram {
-        private final int[] memory;
+        private final long[] memory;
 
         Ram( String source ) {
             this.memory = Arrays.stream( source.split( "," ) )
-                                .mapToInt( Integer::parseInt )
+                                .mapToLong( Long::parseLong )
                                 .toArray();
         }
 
-        int[] getMemory() {
+        long[] getMemory() {
             return Arrays.copyOf( memory, memory.length );
         }
     }

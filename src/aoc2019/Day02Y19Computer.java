@@ -5,6 +5,9 @@ import common.Utils;
 
 import java.util.Map;
 
+import static aoc2019.IntComputer.nullInput;
+import static aoc2019.IntComputer.nullOutput;
+
 public class Day02Y19Computer implements AocDay<Long, Long> {
 
     private final String name;
@@ -34,17 +37,17 @@ public class Day02Y19Computer implements AocDay<Long, Long> {
 
     public Long task1() {
         return (long) IntComputer.fromRam( initialState )
-                                 .fixMemory( Map.of( 1, 12, 2, 2 ) )
-                                 .interpret()
+                                 .fixMemory( Map.of( 1, 12L, 2, 2L ) )
+                                 .interpret( nullInput(), nullOutput() )
                                  .getMemory( 0 );
     }
 
     public Long task2() {
-        for ( int noun = 0; noun <= 99; ++noun ) {
-            for ( int verb = 0; verb <= 99; ++verb ) {
+        for ( long noun = 0; noun <= 99; ++noun ) {
+            for ( long verb = 0; verb <= 99; ++verb ) {
                 if ( IntComputer.fromRam( initialState )
                                 .fixMemory( Map.of( 1, noun, 2, verb ) )
-                                .interpret()
+                                .interpret( nullInput(), nullOutput() )
                                 .getMemory( 0 ) == 19690720L ) {
                     return 100L * noun + verb;
                 }

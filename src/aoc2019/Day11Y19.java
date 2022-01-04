@@ -6,15 +6,29 @@ import common.Utils;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-
-import static aoc2019.IntComputer.channelInput;
-import static aoc2019.IntComputer.channelOutput;
 
 public class Day11Y19 implements AocDay<Integer, Long> {
     private record Point( int x, int y ) {
+    }
+
+    private static class Robot {
+        private int x = 0;
+        private int y = 0;
+        private int dx = 0;
+        private int dy = -1;
+
+        private void turn( int direction ) {
+            int tx = dx;
+            if ( direction == 0 ) {
+                dx = dy;
+                dy = -tx;
+            } else {
+                dx = -dy;
+                dy = tx;
+            }
+            x += dx;
+            y += dy;
+        }
     }
 
     private final String name;
@@ -72,39 +86,23 @@ public class Day11Y19 implements AocDay<Integer, Long> {
         return 0L;
     }
 
-    private Map<Point, Boolean> paintCode( Boolean startingCellColor ) throws InterruptedException {
+    private Map<Point, Boolean> paintCode( Boolean startingCellColor ) {
         Map<Point, Boolean> painted = new TreeMap<>( Comparator.comparing( Point::x ).thenComparing( Point::y ) );
         painted.put( new Point( 0, 0 ), startingCellColor );
-        int x = 0;
-        int y = 0;
-        int dx = 0;
-        int dy = -1;
-        BlockingQueue<Long> inputChannel = new ArrayBlockingQueue<>( 1 );
-        BlockingQueue<Long> outputChannel = new ArrayBlockingQueue<>( 1 );
-        CompletableFuture<Void> cpu = IntComputer.fromRam( ram )
-                                                 .asyncInterpret(
-                                                         channelInput( inputChannel ),
-                                                         channelOutput( outputChannel )
-                                                 );
-        while ( true ) {
-            inputChannel.put( getCellColor( painted, x, y ) );
-            long color = IntComputer.queuedInput( outputChannel, cpu );
-            if ( cpu.isDone() ) {
-                break;
-            }
-            setCellColor( painted, x, y, color );
-            long direction = outputChannel.take();
-            int tx = dx;
-            if ( direction == 0 ) {
-                dx = dy;
-                dy = -tx;
-            } else {
-                dx = -dy;
-                dy = tx;
-            }
-            x += dx;
-            y += dy;
-        }
+        Robot robot = new Robot();
+        int[] phase = { 0 };
+        IntComputer.fromRam( ram )
+                   .interpret(
+                           () -> getCellColor( painted, robot.x, robot.y ),
+                           value -> {
+                               if ( phase[0] == 0 ) {
+                                   setCellColor( painted, robot.x, robot.y, value );
+                               } else {
+                                   robot.turn( value.intValue() );
+                               }
+                               phase[0] = 1 - phase[0];
+                           }
+                   );
         return painted;
     }
 

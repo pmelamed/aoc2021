@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -151,34 +150,6 @@ public class IntComputer {
 
     static Consumer<Long> listOutput( Collection<? super Long> target ) {
         return target::add;
-    }
-
-    static Consumer<Long> channelOutput( BlockingQueue<Long> channel ) {
-        return value -> {
-            try {
-                channel.put( value );
-            } catch ( InterruptedException e ) {
-                throw new IllegalStateException( "Execution interrupted while waiting for output" );
-            }
-        };
-    }
-
-    static long queuedInput(
-            BlockingQueue<Long> channel,
-            CompletableFuture<?> cpuThread
-    ) {
-        CompletableFuture<Long> takeFuture = CompletableFuture.supplyAsync( () -> {
-            try {
-                return channel.take();
-            } catch ( InterruptedException ignored ) {
-                return 0L;
-            }
-        } );
-        try {
-            CompletableFuture.anyOf( takeFuture, cpuThread ).get();
-        } catch ( InterruptedException | ExecutionException ignored ) {
-        }
-        return takeFuture.getNow( 0L );
     }
 
     private void setMemory( int address, long value ) {

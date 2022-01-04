@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -46,20 +45,29 @@ public class Utils {
         }
     }
 
-    private static <T> void executeAndPrintAssert( Supplier<T> task, String sampleName, int taskNo, T expected ) {
+    private static <T> void executeAndPrintAssert(
+            ThrowingSupplier<T> task,
+            String sampleName,
+            int taskNo,
+            T expected
+    ) {
         System.out.print( sampleName + ": executing task #" + taskNo );
         long start = System.currentTimeMillis();
-        T result = task.get();
-        long time = System.currentTimeMillis() - start;
-        System.out.print( " = " + result + " [" + time + "ms]" );
-        if ( expected != null ) {
-            if ( expected.equals( result ) ) {
-                System.out.print( " == " + expected + " - OK!" );
-            } else {
-                System.out.print( " != " + expected + " - Failed!" );
+        try {
+            T result = task.get();
+            long time = System.currentTimeMillis() - start;
+            System.out.print( " = " + result + " [" + time + "ms]" );
+            if ( expected != null ) {
+                if ( expected.equals( result ) ) {
+                    System.out.print( " == " + expected + " - OK!" );
+                } else {
+                    System.out.print( " != " + expected + " - Failed!" );
+                }
             }
+            System.out.println();
+        } catch ( Throwable e ) {
+            throw new RuntimeException( e.getMessage(), e );
         }
-        System.out.println();
     }
 
     public static String bin( long value, int digits ) {
@@ -75,5 +83,9 @@ public class Utils {
             result.append( ch );
         }
         return result.append( str ).toString();
+    }
+
+    private interface ThrowingSupplier<T> {
+        T get() throws Throwable;
     }
 }

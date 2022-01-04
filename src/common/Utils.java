@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -25,6 +27,14 @@ public class Utils {
         } catch ( IOException e ) {
             throw new RuntimeException( e.getMessage(), e );
         }
+    }
+
+    public static String[] matchGroups( String str, String regexp ) {
+        return Pattern.compile( regexp )
+                      .matcher( str )
+                      .results()
+                      .map( MatchResult::group )
+                      .toArray( String[]::new );
     }
 
     public static <T1, T2> void executeDay( AocDay<T1, T2> day, T1 expected1, T2 expected2 ) {
@@ -83,6 +93,37 @@ public class Utils {
             result.append( ch );
         }
         return result.append( str ).toString();
+    }
+
+    public static long mcd( long a, long b ) {
+        while ( a != 0 && b != 0 ) {
+            if ( a > b ) {
+                a %= b;
+            } else if ( a < b ) {
+                b %= a;
+            }
+        }
+        return a == 0 ? b : a;
+    }
+
+    public static long mcd( long... v ) {
+        long result = v[0];
+        for ( int i = 1; i < v.length; i++ ) {
+            result = mcd( result, v[i] );
+        }
+        return result;
+    }
+
+    public static long mvp( long a, long b ) {
+        return a / mcd( a, b ) * b;
+    }
+
+    public static long mvp( long... v ) {
+        long result = v[0];
+        for ( int i = 1; i < v.length; i++ ) {
+            result = mvp( result, v[i] );
+        }
+        return result;
     }
 
     private interface ThrowingSupplier<T> {

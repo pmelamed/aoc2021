@@ -80,7 +80,7 @@ public class Day14Y19 implements AocDay<Long, Long> {
 
     public Long task2() throws InterruptedException {
         ProductionState productionState = new ProductionState();
-        for ( long step = 100_000_000_000L; step > 0; step /= 10L ) {
+        for ( long step = 1L << 40; step > 0; step >>= 1 ) {
             productionState = loopProduction( step, productionState );
         }
         return productionState.fuelProduced;
@@ -88,20 +88,22 @@ public class Day14Y19 implements AocDay<Long, Long> {
 
     private ProductionState loopProduction( long step, ProductionState initial ) {
         ProductionState state = initial.copy();
-        ProductionState prev;
-        do {
-            prev = state.copy();
-            state.produce( FUEL, step );
-        } while ( state.oreConsumed < ORE_LIMIT );
-        return prev;
+        state.produce( FUEL, step );
+        return state.oreConsumed <= ORE_LIMIT ? state : initial;
     }
 
-    private class ProductionState implements Cloneable {
+    private class ProductionState {
         private long oreConsumed;
         private long fuelProduced;
         private final Map<String, Long> store = new TreeMap<>();
 
         private ProductionState() {
+        }
+
+        private ProductionState( ProductionState peer ) {
+            this.oreConsumed = peer.oreConsumed;
+            this.fuelProduced = peer.fuelProduced;
+            this.store.putAll( peer.store );
         }
 
         private void consume( String material, long quantity ) {
@@ -134,11 +136,7 @@ public class Day14Y19 implements AocDay<Long, Long> {
         }
 
         private ProductionState copy() {
-            try {
-                return (ProductionState) this.clone();
-            } catch ( CloneNotSupportedException e ) {
-                throw new RuntimeException( e );
-            }
+            return new ProductionState( this );
         }
     }
 }

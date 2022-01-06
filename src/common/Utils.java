@@ -126,7 +126,11 @@ public class Utils {
         return result;
     }
 
-    private interface ThrowingSupplier<T> {
+    public interface ThrowingSupplier<T> {
         T get() throws Throwable;
+    }
+
+    public interface ThrowingConsumer<T> {
+        void accept( T value ) throws Throwable;
     }
 }

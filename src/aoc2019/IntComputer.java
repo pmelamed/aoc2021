@@ -1,5 +1,7 @@
 package aoc2019;
 
+import common.Utils;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -21,66 +23,83 @@ public class IntComputer {
     }
 
     IntComputer interpret( Supplier<Long> input, Consumer<Long> output ) {
-        while ( true ) {
-            long instr = getInstrPart();
-            switch ( (int) ( instr % 100L ) ) {
-                case 1 -> {
-                    long lhs = getOperand( getInstrPart(), instr, 0 );
-                    long rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getOperandAddress( getInstrPart(), instr, 2 );
-                    setMemory( target, lhs + rhs );
-                }
-                case 2 -> {
-                    long lhs = getOperand( getInstrPart(), instr, 0 );
-                    long rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getOperandAddress( getInstrPart(), instr, 2 );
-                    setMemory( target, lhs * rhs );
-                }
-                case 3 -> {
-                    int target = getOperandAddress( getInstrPart(), instr, 0 );
-                    setMemory( target, input.get() );
-                }
-                case 4 -> {
-                    long value = getOperand( getInstrPart(), instr, 0 );
-                    output.accept( value );
-                }
-                case 5 -> {
-                    long op = getOperand( getInstrPart(), instr, 0 );
-                    int target = getIntOperand( getInstrPart(), instr, 1 );
-                    if ( op != 0 ) {
-                        iptr = target;
+        return interpretUnsafe(
+                input::get,
+                output::accept
+        );
+    }
+
+    IntComputer interpretUnsafe( Utils.ThrowingSupplier<Long> input, Utils.ThrowingConsumer<Long> output ) {
+        try {
+            while ( !Thread.interrupted() ) {
+                long instr = getInstrPart();
+                switch ( (int) ( instr % 100L ) ) {
+                    case 1 -> {
+                        long lhs = getOperand( getInstrPart(), instr, 0 );
+                        long rhs = getOperand( getInstrPart(), instr, 1 );
+                        int target = getOperandAddress( getInstrPart(), instr, 2 );
+                        setMemory( target, lhs + rhs );
                     }
-                }
-                case 6 -> {
-                    long op = getOperand( getInstrPart(), instr, 0 );
-                    int target = getIntOperand( getInstrPart(), instr, 1 );
-                    if ( op == 0 ) {
-                        iptr = target;
+                    case 2 -> {
+                        long lhs = getOperand( getInstrPart(), instr, 0 );
+                        long rhs = getOperand( getInstrPart(), instr, 1 );
+                        int target = getOperandAddress( getInstrPart(), instr, 2 );
+                        setMemory( target, lhs * rhs );
                     }
+                    case 3 -> {
+                        int target = getOperandAddress( getInstrPart(), instr, 0 );
+                        setMemory( target, input.get() );
+                    }
+                    case 4 -> {
+                        long value = getOperand( getInstrPart(), instr, 0 );
+                        output.accept( value );
+                    }
+                    case 5 -> {
+                        long op = getOperand( getInstrPart(), instr, 0 );
+                        int target = getIntOperand( getInstrPart(), instr, 1 );
+                        if ( op != 0 ) {
+                            iptr = target;
+                        }
+                    }
+                    case 6 -> {
+                        long op = getOperand( getInstrPart(), instr, 0 );
+                        int target = getIntOperand( getInstrPart(), instr, 1 );
+                        if ( op == 0 ) {
+                            iptr = target;
+                        }
+                    }
+                    case 7 -> {
+                        long lhs = getOperand( getInstrPart(), instr, 0 );
+                        long rhs = getOperand( getInstrPart(), instr, 1 );
+                        int target = getOperandAddress( getInstrPart(), instr, 2 );
+                        setMemory( target, lhs < rhs ? 1 : 0 );
+                    }
+                    case 8 -> {
+                        long lhs = getOperand( getInstrPart(), instr, 0 );
+                        long rhs = getOperand( getInstrPart(), instr, 1 );
+                        int target = getOperandAddress( getInstrPart(), instr, 2 );
+                        setMemory( target, lhs == rhs ? 1 : 0 );
+                    }
+                    case 9 -> relativeBase += getIntOperand( getInstrPart(), instr, 0 );
+                    case 99 -> {
+                        return this;
+                    }
+                    default -> throw new IllegalStateException( "Bad opcode = " + instr );
                 }
-                case 7 -> {
-                    long lhs = getOperand( getInstrPart(), instr, 0 );
-                    long rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getOperandAddress( getInstrPart(), instr, 2 );
-                    setMemory( target, lhs < rhs ? 1 : 0 );
-                }
-                case 8 -> {
-                    long lhs = getOperand( getInstrPart(), instr, 0 );
-                    long rhs = getOperand( getInstrPart(), instr, 1 );
-                    int target = getOperandAddress( getInstrPart(), instr, 2 );
-                    setMemory( target, lhs == rhs ? 1 : 0 );
-                }
-                case 9 -> relativeBase += getIntOperand( getInstrPart(), instr, 0 );
-                case 99 -> {
-                    return this;
-                }
-                default -> throw new IllegalStateException( "Bad opcode = " + instr );
             }
+            return this;
+        } catch ( InterruptedException e ) {
+            return this;
+        } catch ( Throwable e ) {
+            throw new RuntimeException( e.getMessage(), e );
         }
     }
 
-    CompletableFuture<Void> asyncInterpret( Supplier<Long> input, Consumer<Long> output ) {
-        return CompletableFuture.runAsync( () -> interpret( input, output ) );
+    CompletableFuture<Void> asyncInterpretUnsafe(
+            Utils.ThrowingSupplier<Long> input,
+            Utils.ThrowingConsumer<Long> output
+    ) {
+        return CompletableFuture.runAsync( () -> interpretUnsafe( input, output ) );
     }
 
     long getMemory( int address ) {

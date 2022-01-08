@@ -3,6 +3,7 @@ package common;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -24,6 +25,16 @@ public class Utils {
     public static List<String> readLines( String path ) {
         try {
             return Files.readAllLines( Path.of( path ) );
+        } catch ( IOException e ) {
+            throw new RuntimeException( e.getMessage(), e );
+        }
+    }
+
+    public static Stream<String> readFirstLine( String path, String splitExp ) {
+        try {
+            return Arrays.stream(
+                    Files.readAllLines( Path.of( path ) ).get( 0 ).split( splitExp )
+            );
         } catch ( IOException e ) {
             throw new RuntimeException( e.getMessage(), e );
         }

@@ -22,6 +22,12 @@ public class IntComputer {
         this.allocationSize = this.memory.length;
     }
 
+    IntComputer reset() {
+        this.iptr = 0;
+        this.relativeBase = 0;
+        return this;
+    }
+
     IntComputer interpret( Supplier<Long> input, Consumer<Long> output ) {
         return interpretUnsafe(
                 input::get,

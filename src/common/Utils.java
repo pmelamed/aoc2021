@@ -40,6 +40,10 @@ public class Utils {
         }
     }
 
+    public static String readFirstLine( String path ) {
+        return lines( path ).limit( 1 ).findAny().orElse( null );
+    }
+
     public static String[] matchGroups( String str, String regexp ) {
         return Pattern.compile( regexp )
                       .matcher( str )

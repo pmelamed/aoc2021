@@ -3,7 +3,6 @@ package aoc2022;
 import common.AocDay;
 import common.Utils;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -11,8 +10,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Day05Y22 implements AocDay<String, String> {
-
-    // WCPZJVRDH
 
     private static final Pattern MOVE_PARSER = Pattern.compile( "move (\\d+) from (\\d) to (\\d)" );
     private final String name;

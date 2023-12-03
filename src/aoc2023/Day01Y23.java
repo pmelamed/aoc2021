@@ -49,7 +49,7 @@ public class Day01Y23 implements AocDay<Long, Long> {
         try {
             Utils.executeDay( new Day01Y23( "input/2023/Y23D01S1.DAT" ), 142L, null );
             Utils.executeDay( new Day01Y23( "input/2023/Y23D01S2.DAT" ), null, 281L );
-            Utils.executeDay( new Day01Y23( "input/2023/Y23D01I.DAT" ), 55123L, null );
+            Utils.executeDay( new Day01Y23( "input/2023/Y23D01I.DAT" ), 55123L, 55260L );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }

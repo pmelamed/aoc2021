@@ -5,7 +5,6 @@ import common.AocDay;
 import common.Utils;
 
 import java.util.List;
-import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -61,11 +60,9 @@ public class Day06Y23 implements AocDay<Long, Long> {
     }
 
     private long[] getValues( String line ) {
-        return NUMBER_PATTERN.matcher( line )
-                             .results()
-                             .map( MatchResult::group )
-                             .mapToLong( Long::parseUnsignedLong )
-                             .toArray();
+        return Utils.matchGroups( line, "[0-9]+" )
+                    .mapToLong( Long::parseUnsignedLong )
+                    .toArray();
     }
 
     private long getBigValue( String line ) {

@@ -44,12 +44,11 @@ public class Utils {
         return lines( path ).limit( 1 ).findAny().orElse( null );
     }
 
-    public static String[] matchGroups( String str, String regexp ) {
+    public static Stream<String> matchGroups( String str, String regexp ) {
         return Pattern.compile( regexp )
                       .matcher( str )
                       .results()
-                      .map( MatchResult::group )
-                      .toArray( String[]::new );
+                      .map( MatchResult::group );
     }
 
     public static <T1, T2> void executeDay( AocDay<T1, T2> day, T1 expected1, T2 expected2 ) {

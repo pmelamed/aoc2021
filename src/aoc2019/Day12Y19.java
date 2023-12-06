@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class Day12Y19 implements AocDay<Long, Long> {
     private static record Point3D( int x, int y, int z ) {
         public Point3D( String encoded ) {
-            this( Arrays.stream( Utils.matchGroups( encoded, "\\-?[0-9]+" ) )
+            this( Utils.matchGroups( encoded, "\\-?[0-9]+" )
                         .mapToInt( Integer::parseInt )
                         .toArray() );
         }

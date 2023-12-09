@@ -27,7 +27,8 @@ public class Day05Y19 implements AocDay<Long, Long> {
                 new Day05Y19( fileName, 1L ),
                 new Day05Y19( fileName, 5L ),
                 expected1,
-                expected2
+                expected2,
+                false
         );
     }
 

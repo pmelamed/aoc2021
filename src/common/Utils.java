@@ -52,7 +52,11 @@ public class Utils {
     }
 
     public static <T1, T2> void executeDay( AocDay<T1, T2> day, T1 expected1, T2 expected2 ) {
-        executeDay( day, day, expected1, expected2 );
+        executeDay( day, day, expected1, expected2, false );
+    }
+
+    public static <T1, T2> void executeSampleDay( AocDay<T1, T2> day, T1 expected1, T2 expected2 ) {
+        executeDay( day, day, expected1, expected2, true );
     }
 
     public static <T1, T2> void executeDay(
@@ -61,10 +65,20 @@ public class Utils {
             T1 expected1,
             T2 expected2
     ) {
-        if ( dayInst1 != null ) {
+        executeDay( dayInst1, dayInst2, expected1, expected2, false );
+    }
+
+    public static <T1, T2> void executeDay(
+            AocDay<T1, T2> dayInst1,
+            AocDay<T1, T2> dayInst2,
+            T1 expected1,
+            T2 expected2,
+            boolean sample
+    ) {
+        if ( dayInst1 != null && ( !sample || expected1 != null ) ) {
             executeAndPrintAssert( dayInst1::task1, dayInst1.sampleName(), 1, expected1 );
         }
-        if ( dayInst2 != null ) {
+        if ( dayInst2 != null && ( !sample || expected2 != null ) ) {
             executeAndPrintAssert( dayInst2::task2, dayInst2.sampleName(), 2, expected2 );
         }
     }

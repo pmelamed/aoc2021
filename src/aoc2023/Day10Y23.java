@@ -1,4 +1,4 @@
-// https://adventofcode.com/2023/day/6
+// https://adventofcode.com/2023/day/10
 package aoc2023;
 
 import common.AocDay;
@@ -42,17 +42,17 @@ public class Day10Y23 implements AocDay<Long, Long> {
             (int) 'S', START
     );
 
-    //    private static final Map<Integer, Character> IMAGE = Map.of(
-//            NS, '│',
-//            EW, '─',
-//            NE, '└',
-//            NW, '┘',
-//            SW, '┐',
-//            SE, '┌',
-//            GROUND, '.',
-//            START, 'S'
-//    );
-//
+    private static final Map<Integer, Character> IMAGE = Map.of(
+            NS, '│',
+            EW, '─',
+            NE, '└',
+            NW, '┘',
+            SW, '┐',
+            SE, '┌',
+            GROUND, '.',
+            START, 'S'
+    );
+
     private static final int[][] FSM = new int[MODES_COUNT][DIRS_COUNT];
 
     static {
@@ -91,7 +91,7 @@ public class Day10Y23 implements AocDay<Long, Long> {
 
     private final String filename;
     private final int[][] field;
-    //    private final char[][] image;
+    private final char[][] image;
     private final int[][] outline;
     private final int startRow;
     private final int startCol;
@@ -113,14 +113,14 @@ public class Day10Y23 implements AocDay<Long, Long> {
         this.filename = filename;
         List<String> lines = Utils.readLines( filename );
         field = new int[lines.size() + 2][lines.get( 0 ).length() + 2];
-//        image = new char[field.length][field[0].length];
+        image = new char[field.length][field[0].length];
         int srow = 0;
         int scol = 0;
         for ( int row = 1; row < field.length - 1; row++ ) {
             char[] chars = lines.get( row - 1 ).toCharArray();
             for ( int col = 1; col < field[0].length - 1; col++ ) {
                 field[row][col] = DIRECTIONS.get( (int) chars[col - 1] );
-//                image[row][col] = IMAGE.get( field[row][col] );
+                image[row][col] = IMAGE.get( field[row][col] );
                 if ( chars[col - 1] == 'S' ) {
                     srow = row;
                     scol = col;
@@ -163,19 +163,13 @@ public class Day10Y23 implements AocDay<Long, Long> {
             }
         } while ( row != startRow || col != startCol );
         field[startRow][startCol] = MY_SIDE[outline[startRow][startCol] - 1] | MY_SIDE[prevDir];
-//        image[startRow][startCol] = IMAGE.get( field[startRow][startCol] );
+        image[startRow][startCol] = IMAGE.get( field[startRow][startCol] );
         return step / 2;
     }
 
     @Override
     public Long task2() throws Throwable {
-//        System.out.println();
-//        for ( int row = 0; row < field.length; row++ ) {
-//            for ( int col = 0; col < field[0].length; col++ ) {
-//                System.out.print( outline[row][col] > 0 ? image[row][col] : "." );
-//            }
-//            System.out.println();
-//        }
+        System.out.println();
         long result = 0;
         for ( int rowIndex = 1; rowIndex < field.length - 1; rowIndex++ ) {
             int[] row = field[rowIndex];
@@ -184,6 +178,8 @@ public class Day10Y23 implements AocDay<Long, Long> {
                 int cell = outline[rowIndex][colIndex] == 0 ? GROUND : row[colIndex];
                 if ( mode == MODE_INNER && cell == GROUND ) {
                     result++;
+                    image[rowIndex][colIndex] = '*';
+                    outline[rowIndex][colIndex] = -1;
                 }
                 int prevMode = mode;
                 mode = FSM[mode][cell];
@@ -204,6 +200,16 @@ public class Day10Y23 implements AocDay<Long, Long> {
                 );
             }
         }
+        printField();
         return result;
+    }
+
+    private void printField() {
+        for ( int row = 0; row < field.length; row++ ) {
+            for ( int col = 0; col < field[0].length; col++ ) {
+                System.out.print( outline[row][col] != 0 ? image[row][col] : "." );
+            }
+            System.out.println();
+        }
     }
 }

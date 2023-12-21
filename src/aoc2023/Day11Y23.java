@@ -22,7 +22,7 @@ public class Day11Y23 implements AocDay<Long, Long> {
                     new Day11Y23( "input/2023/Y23D11I.DAT", 2 ),
                     new Day11Y23( "input/2023/Y23D11I.DAT", 1_000_000 ),
                     9627977L,
-                    null
+                    644248339497L
             );
         } catch ( Throwable e ) {
             e.printStackTrace();

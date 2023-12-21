@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -152,6 +154,12 @@ public class Utils {
             result = mvp( result, v[i] );
         }
         return result;
+    }
+
+    public static String repeat( String str, int count, String delimiter ) {
+        return IntStream.range( 0, count )
+                        .mapToObj( i -> str )
+                        .collect( Collectors.joining( delimiter ) );
     }
 
     public interface ThrowingSupplier<T> {

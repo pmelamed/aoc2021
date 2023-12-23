@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 
 public class Day07Y23 implements AocDay<Long, Long> {
     private static final int[] FREQ_BUFFER = new int[14];
-    private static final int[] ASC_HAND_BUFFER = new int[5];
     private static final int[] CHAR_TO_WEIGHT = new int[127];
 
     static {

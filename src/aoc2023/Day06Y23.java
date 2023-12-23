@@ -5,11 +5,9 @@ import common.AocDay;
 import common.Utils;
 
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Day06Y23 implements AocDay<Long, Long> {
-    private static final Pattern NUMBER_PATTERN = Pattern.compile( "[0-9]+" );
     private final String filename;
 
     public static void main( String[] args ) {

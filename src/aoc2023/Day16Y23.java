@@ -3,10 +3,8 @@ package aoc2023;
 import common.AocDay;
 import common.Utils;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class Day16Y23 implements AocDay<Long, Long> {
     private static final int DIR_NORTH = 0;
@@ -14,41 +12,26 @@ public class Day16Y23 implements AocDay<Long, Long> {
     private static final int DIR_SOUTH = 2;
     private static final int DIR_WEST = 3;
 
-    private static final char[] DIR_CHAR = {
-            '^', '>', 'v', '<'
-    };
-
-    private static final char[] MARK_CHAR = {
-            ' ', '^', '>', '└', 'v', '|', '┌', '├', '<', '┘', '-', '┴', '┐', '┤', '┬', '┼'
-    };
-
     private static final int[] DX = { 0, 1, 0, -1 };
     private static final int[] DY = { -1, 0, 1, 0 };
 
-    private static final int[][] POINT_TRANSLATE = { { DIR_NORTH }, { DIR_EAST }, { DIR_SOUTH }, { DIR_WEST } };
-    private static final int[][] SLASH_TRANSLATE = { { DIR_EAST }, { DIR_NORTH }, { DIR_WEST }, { DIR_SOUTH } };
-    private static final int[][] BSLASH_TRANSLATE = { { DIR_WEST }, { DIR_SOUTH }, { DIR_EAST }, { DIR_NORTH } };
-    private static final int[][] VSPLITTER_TRANSLATE =
-            { { DIR_NORTH }, { DIR_NORTH, DIR_SOUTH }, { DIR_SOUTH }, { DIR_NORTH, DIR_SOUTH } };
-    private static final int[][] HSPLITTER_TRANSLATE =
-            { { DIR_EAST, DIR_WEST }, { DIR_EAST }, { DIR_EAST, DIR_WEST }, { DIR_WEST } };
-
-    private static final Map<Character, int[][]> TILE_TRANSLATORS = Map.of(
-            '.', POINT_TRANSLATE,
-            '/', SLASH_TRANSLATE,
-            '\\', BSLASH_TRANSLATE,
-            '|', VSPLITTER_TRANSLATE,
-            '-', HSPLITTER_TRANSLATE
-    );
+    private static final int[][] TURNS = {
+            { DIR_EAST, DIR_WEST },
+            { DIR_SOUTH, DIR_NORTH },
+            { DIR_WEST, DIR_EAST },
+            { DIR_NORTH, DIR_SOUTH }
+    };
 
     private final String filename;
-    private final char[][] field;
+    private final int[][] field;
     private final int width;
+    private final int height;
 
     public static void main( String[] args ) {
         try {
-            Utils.executeSampleDay( new Day16Y23( "input/2023/Y23D16S1.dat" ), 46L, 51L );
-            Utils.executeDay( new Day16Y23( "input/2023/Y23D16I.dat" ), 7434L, 8183L );
+            Utils.executeSampleDay( new Day16Y23( "input/2023/Y23D17S1.dat" ), 102L, 94L );
+            Utils.executeSampleDay( new Day16Y23( "input/2023/Y23D17S2.dat" ), null, 71L );
+            Utils.executeDay( new Day16Y23( "input/2023/Y23D17I.dat" ), 1004L, 1171L );
         } catch ( Throwable e ) {
             e.printStackTrace();
         }
@@ -57,9 +40,11 @@ public class Day16Y23 implements AocDay<Long, Long> {
     public Day16Y23( String file ) {
         this.filename = file;
         field = Utils.lines( filename )
-                     .map( String::toCharArray )
-                     .toArray( char[][]::new );
-        width = field.length;
+                     .map( String::chars )
+                     .map( chars -> chars.map( v -> v - '0' ).toArray() )
+                     .toArray( int[][]::new );
+        height = field.length;
+        width = field[0].length;
     }
 
     @Override
@@ -68,75 +53,76 @@ public class Day16Y23 implements AocDay<Long, Long> {
     }
 
     public Long task1() {
-        return getBeamEnergy( new Beam( 0, 0, DIR_EAST ) );
+        return getOptimalWay( 1, 3 );
     }
 
     public Long task2() {
-        ArrayList<Beam> beams = new ArrayList<>();
-        for ( int tile = 0; tile < width; tile++ ) {
-            beams.add( new Beam( tile, 0, DIR_SOUTH ) );
-            beams.add( new Beam( tile, width - 1, DIR_NORTH ) );
-            beams.add( new Beam( 0, tile, DIR_EAST ) );
-            beams.add( new Beam( width - 1, tile, DIR_WEST ) );
-        }
-        return beams.stream()
-                    .mapToLong( this::getBeamEnergy )
-                    .max()
-                    .orElseThrow();
+        return getOptimalWay( 4, 10 );
     }
 
-    private long getBeamEnergy( Beam initialBeam ) {
-        List<Beam> activeBeams = new LinkedList<>();
-        byte[][] beamMarks = new byte[width][width];
-        activeBeams.add( initialBeam );
-        while ( !activeBeams.isEmpty() ) {
-            Beam beam = activeBeams.get( 0 );
-            if ( beam.x < 0 || beam.y < 0
-                    || beam.x >= width || beam.y >= width
-                    || markTile( beamMarks, beam.x, beam.y, beam.dir ) ) {
-                activeBeams.remove( 0 );
-                continue;
-            }
-            int[] translate = TILE_TRANSLATORS.get( field[beam.y][beam.x] )[beam.dir];
-            if ( translate.length > 1 ) {
-                Beam newBeam = new Beam( beam.x, beam.y, translate[1] );
-                newBeam.x += DX[newBeam.dir];
-                newBeam.y += DY[newBeam.dir];
-                activeBeams.add( newBeam );
-            }
-            beam.dir = translate[0];
-            beam.x += DX[beam.dir];
-            beam.y += DY[beam.dir];
-        }
-        long result = 0;
-        for ( byte[] row : beamMarks ) {
-            for ( byte tile : row ) {
-                if ( tile != 0 ) {
-                    result++;
+    private long getOptimalWay( int minStraight, int maxStraight ) {
+        LinkedList<Path> activePaths = new LinkedList<>();
+        long[][][][] losses = new long[4][maxStraight][height][width];
+        long minPath = Long.MAX_VALUE;
+        for ( long[][][] l1 : losses ) {
+            for ( long[][] l2 : l1 ) {
+                for ( long[] l3 : l2 ) {
+                    Arrays.fill( l3, Long.MAX_VALUE );
                 }
             }
         }
-        return result;
-    }
-
-    private boolean markTile( byte[][] beamMarks, int x, int y, int dir ) {
-        byte mask = (byte) ( 1 << dir );
-        if ( ( beamMarks[y][x] & mask ) != 0 ) {
-            return true;
+        activePaths.add( new Path( 0, 0, DIR_EAST ) );
+        activePaths.add( new Path( 0, 0, DIR_SOUTH ) );
+        while ( !activePaths.isEmpty() ) {
+            Path path = activePaths.removeFirst();
+            path.x += DX[path.dir];
+            path.y += DY[path.dir];
+            path.straight++;
+            if ( path.x < 0 || path.x >= width
+                    || path.y < 0 || path.y >= height ) {
+                continue;
+            }
+            path.lost += field[path.y][path.x];
+            if ( path.lost >= minPath || path.lost >= losses[path.dir][path.straight - 1][path.y][path.x] ) {
+                continue;
+            }
+            losses[path.dir][path.straight - 1][path.y][path.x] = path.lost;
+            if ( path.x == width - 1 && path.y == height - 1 && path.straight >= minStraight ) {
+                minPath = path.lost;
+                continue;
+            }
+            if ( path.straight < maxStraight ) {
+                activePaths.add( path );
+            }
+            if ( path.straight >= minStraight ) {
+                activePaths.add( new Path( path, TURNS[path.dir][0] ) );
+                activePaths.add( new Path( path, TURNS[path.dir][1] ) );
+            }
         }
-        beamMarks[y][x] |= mask;
-        return false;
+        return minPath;
     }
 
-    private static class Beam {
+    private static class Path {
         private int x;
         private int y;
-        private int dir;
+        private final int dir;
+        private int straight;
+        private long lost;
 
-        public Beam( int x, int y, int dir ) {
+        private Path( Path prev, int dir ) {
+            this( prev.x, prev.y, dir, 0, prev.lost );
+        }
+
+        private Path( int x, int y, int dir ) {
+            this( x, y, dir, 0, 0 );
+        }
+
+        private Path( int x, int y, int dir, int straight, long lost ) {
             this.x = x;
             this.y = y;
             this.dir = dir;
+            this.straight = straight;
+            this.lost = lost;
         }
     }
 }

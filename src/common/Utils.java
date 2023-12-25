@@ -16,6 +16,10 @@ public class Utils {
         System.out.printf( msg + "%n", args );
     }
 
+    public static void newLine() {
+        System.out.println();
+    }
+
     public static Stream<String> lines( String path ) {
         try {
             return Files.lines( Path.of( path ) );

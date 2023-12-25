@@ -1,3 +1,4 @@
+// https://adventofcode.com/2023/day/16
 package aoc2023;
 
 import common.AocDay;
